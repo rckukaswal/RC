@@ -25,7 +25,7 @@ public class RC {
         searchBox.sendKeys(Keys.ENTER);
 
         // EXPLICIT WAIT (Fix NoSuchElementException)
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
         // Google new layout — the first result title is inside an <h3> but wrapped differently
         WebElement firstResult = wait.until(
@@ -37,6 +37,7 @@ public class RC {
 
         Thread.sleep(2000);
         System.out.println("Page Title = " + driver.getTitle());
+        
 
         driver.quit();
     }
