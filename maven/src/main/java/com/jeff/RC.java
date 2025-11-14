@@ -6,39 +6,65 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
+import java.util.List;
 
 public class RC {
 
     public static void main(String[] args) throws Exception {
 
-        WebDriverManager.chromedriver().setup(); 
+        WebDriverManager.chromedriver().setup();  
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
 
-        driver.get("https://www.google.com");
-
-        WebElement searchBox = driver.findElement(By.name("q"));
-        searchBox.sendKeys("Selenium WebDriver automation tutorial");
-        searchBox.sendKeys(Keys.ENTER);
-
-        // EXPLICIT WAIT (Fix NoSuchElementException)
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // Google new layout — the first result title is inside an <h3> but wrapped differently
-        WebElement firstResult = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h3"))
+        // 1️⃣ AMAZON OPEN
+        driver.get("https://www.amazon.in");
+        System.out.println("STEP 1: Amazon opened.");
+
+        // 2️⃣ SEARCH LAPTOP
+        WebElement searchBox = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("twotabsearchtextbox"))
         );
+        searchBox.sendKeys("Laptop");
+        searchBox.sendKeys(Keys.ENTER);
+        System.out.println("STEP 2: Search submitted.");
 
-        System.out.println("First result: " + firstResult.getText());
-        firstResult.click();
+        // 3️⃣ WAIT FOR RESULTS
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h2 a")));
 
-        Thread.sleep(2000);
-        System.out.println("Page Title = " + driver.getTitle());
-        
+        // 4️⃣ GET FIRST PRODUCT
+        List<WebElement> products = driver.findElements(By.cssSelector("h2 a"));
+        WebElement firstProduct = products.get(0);
 
+        System.out.println("STEP 3: First Product Title = " + firstProduct.getText());
+
+        // 5️⃣ CLICK FIRST PRODUCT
+        firstProduct.click();
+        System.out.println("STEP 4: Product page opened.");
+
+        // SWITCH TAB (Amazon opens in new tab)
+        for (String tab : driver.getWindowHandles()) {
+            driver.switchTo().window(tab);
+        }
+
+        // 6️⃣ WAIT FOR PRICE
+        WebElement price = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#corePrice_feature_div")));
+        System.out.println("STEP 5: Product Price Section Found.");
+
+        // 7️⃣ PRINT TITLE + PRICE
+        String productTitle = driver.findElement(By.id("productTitle")).getText();
+        String productPrice = driver.findElement(By.cssSelector(".a-price-whole")).getText();
+
+        System.out.println("PRODUCT TITLE: " + productTitle);
+        System.out.println("PRODUCT PRICE: ₹" + productPrice);
+
+        // 8️⃣ CLOSE BROWSER
         driver.quit();
+        System.out.println("STEP 6: Automation Completed!");
     }
 }
