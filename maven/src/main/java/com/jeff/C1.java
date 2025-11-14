@@ -16,55 +16,74 @@ public class C1 {
 
     public static void main(String[] args) throws Exception {
 
-        WebDriverManager.chromedriver().setup();  
+        WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // 1️⃣ AMAZON OPEN
+        // STEP 1
         driver.get("https://www.amazon.in");
         System.out.println("STEP 1: Amazon opened.");
 
-        // 2️⃣ SEARCH LAPTOP
+        // STEP 2
         WebElement searchBox = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id("twotabsearchtextbox"))
+            ExpectedConditions.visibilityOfElementLocated(By.id("twotabsearchtextbox"))
         );
         searchBox.sendKeys("Laptop");
         searchBox.sendKeys(Keys.ENTER);
         System.out.println("STEP 2: Search submitted.");
 
-        // 3️⃣ WAIT FOR RESULTS
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h2 a")));
+        // STEP 3 - Wait until product container loads
+        wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("div[data-component-type='s-search-result']")
+            )
+        );
+        System.out.println("STEP 3: Results loaded.");
 
-        // 4️⃣ GET FIRST PRODUCT
-        List<WebElement> products = driver.findElements(By.cssSelector("h2 a"));
+        // STEP 4 - Get ALL search result products
+        List<WebElement> products = driver.findElements(
+            By.cssSelector("div[data-component-type='s-search-result'] h2 a")
+        );
+
+        System.out.println("PRODUCT COUNT FOUND: " + products.size());
+
+        if (products.size() == 0) {
+            System.out.println("❌ No product title found with this selector!");
+            driver.quit();
+            return;
+        }
+
+        // FIRST PRODUCT
         WebElement firstProduct = products.get(0);
 
-        System.out.println("STEP 3: First Product Title = " + firstProduct.getText());
+        System.out.println("STEP 4: First Product = " + firstProduct.getText());
 
-        // 5️⃣ CLICK FIRST PRODUCT
         firstProduct.click();
-        System.out.println("STEP 4: Product page opened.");
 
-        // SWITCH TAB (Amazon opens in new tab)
+        // Step 5: Switch to new tab
         for (String tab : driver.getWindowHandles()) {
             driver.switchTo().window(tab);
         }
 
-        // 6️⃣ WAIT FOR PRICE
-        WebElement price = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#corePrice_feature_div")));
-        System.out.println("STEP 5: Product Price Section Found.");
+        // STEP 6 - Get product title
+        WebElement productTitle = wait.until(
+            ExpectedConditions.visibilityOfElementLocated(By.id("productTitle"))
+        );
+        System.out.println("PRODUCT TITLE: " + productTitle.getText());
 
-        // 7️⃣ PRINT TITLE + PRICE
-        String productTitle = driver.findElement(By.id("productTitle")).getText();
-        String productPrice = driver.findElement(By.cssSelector(".a-price-whole")).getText();
+        // STEP 7
+        try {
+            WebElement price = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".a-price-whole"))
+            );
+            System.out.println("PRODUCT PRICE: ₹" + price.getText());
+        } catch (Exception e) {
+            System.out.println("⚠ Price not available for this product.");
+        }
 
-        System.out.println("PRODUCT TITLE: " + productTitle);
-        System.out.println("PRODUCT PRICE: ₹" + productPrice);
-
-        // 8️⃣ CLOSE BROWSER
         driver.quit();
-        System.out.println("STEP 6: Automation Completed!");
+        System.out.println("STEP 8: Automation Done!");
     }
 }
